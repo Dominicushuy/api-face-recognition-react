@@ -33,7 +33,7 @@ class App extends Component {
     this.state = {
       input: '',
       imageUrl: '',
-      box: {},
+      box: [],
       route: 'signin',
       isSignedIn: false,
       user: {
@@ -57,16 +57,20 @@ class App extends Component {
   }
 
   calculateFaceLocation = (data) => {
-    const clarifaiFace = data.outputs[0].data.regions[0].region_info.bounding_box;
-    const image = document.getElementById('inputimage');
-    const width = Number(image.width);
-    const height = Number(image.height);
-    return {
-      leftCol: clarifaiFace.left_col * width,
-      topRow: clarifaiFace.top_row * height,
-      rightCol: width - (clarifaiFace.right_col * width),
-      bottomRow: height - (clarifaiFace.bottom_row * height)
-    }
+    let boxArr = [];
+    const clarifaiFaces = data.outputs[0].data.regions;
+    clarifaiFaces.forEach(ele => {
+      const image = document.getElementById('inputimage');
+      const width = Number(image.width);
+      const height = Number(image.height);
+      boxArr.push({
+        leftCol: ele.region_info.bounding_box.left_col * width,
+        topRow: ele.region_info.bounding_box.top_row * height,
+        rightCol: width - (ele.region_info.bounding_box.right_col * width),
+        bottomRow: height - (ele.region_info.bounding_box.bottom_row * height)
+      })
+    })
+    return boxArr;
   }
 
   displayFaceBox = (box) => {
@@ -84,6 +88,7 @@ class App extends Component {
         Clarifai.FACE_DETECT_MODEL,
         this.state.input)
       .then(response => {
+        console.log(response);
         // if (response) {
         //   fetch('http://localhost:3000/image', {
         //     method: 'put',
